@@ -168,7 +168,7 @@ class Renamer:
 					if re.search("- " + str(num) + " -", f.rename) is not None:
 						f.replace('$', title)
 						break
-		self.printChanges()
+		self.printFileChanges()
 
 
 class FileRename:

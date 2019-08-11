@@ -1,43 +1,33 @@
-# Batch Rename CLI
-- Hello World
+# Batch Rename Program
+The Batch Rename Program allows for renaming of multiple files from the command line.
+
+## Usage
+`brp <file> ...`
 
 ## Operations
-### u, undo
-Undo last regex applied
+### Quit
+Quit program, don't apply unsaved changes.
 
-### k, keep
-Keep regex just applied
+### Help
+Print help message.
 
-### s, save
-Save files with current regex
+### Undo
+Undo last regex applied.
 
-### q, quit
-Quit program
+### Save
+Save files with current changes.
 
-### h, help
-Print help message
+### Regex
+Find and replace based on a regex.
 
-### r, regex
-Find and replace based on a regex
+### List
+Lists current files being modified.
 
-### l, list
-Lists current files being modified
+### Ext
+Change all the extensions on all files.
 
-### e, ext
-Change the file extensions
+### Insert
+Insert string, positive from begining, negative from ending.
 
-### To Add
-#### i, insert
-Inserts string at index
-
-#### n, names
-Appends episode names from list in file (tsv?)
-	Open file, read line by line, and search thru Files list for regex match on episode
-
-## Data Structure
-### Action
-``` json
-{
-	"names": ["r", "regex"]
-}
-```
+### Name
+Load tsv file with episode number and titles.

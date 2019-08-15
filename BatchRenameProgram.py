@@ -4,6 +4,11 @@ from os import path, rename
 from sys import argv
 
 import re
+try:
+	import readline
+except:
+	print("Readline not available")
+
 
 CONFIM = ["y", "Y", "yes", "Yes"]
 DENY = ["n", "N", "no", "No"]

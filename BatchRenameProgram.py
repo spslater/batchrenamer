@@ -124,8 +124,8 @@ class Renamer:
 		really = userInput("Are you sure you want to save and quit? ")
 		while True:
 			if really in CONFIM: 
-				save("yes")
-				quit("yes")
+				self.save("yes")
+				self.quit("yes")
 				exit()
 			elif really in DENY:
 				return

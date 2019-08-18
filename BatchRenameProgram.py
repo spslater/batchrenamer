@@ -60,7 +60,7 @@ class Renamer:
 			{ "opts": ["w", "write"],
 				"help_opt": "w[rite]",
 				"message": "Write changes and quit program, same as save then quit.", 
-				"method": self.appendEpisodeNames },
+				"method": self.saveAndQuit },
 		]
 		self.HELP_PAD = self._calcHelpPadding()
 		self.files = []

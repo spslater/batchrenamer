@@ -57,6 +57,10 @@ class Renamer:
 				"help_opt": "n[ame]",
 				"message": "Load tsv file with episode number and titles.", 
 				"method": self.appendEpisodeNames },
+			{ "opts": ["w", "write"],
+				"help_opt": "w[rite]",
+				"message": "Write changes and quit program, same as save then quit.", 
+				"method": self.appendEpisodeNames },
 		]
 		self.HELP_PAD = self._calcHelpPadding()
 		self.files = []
@@ -91,8 +95,8 @@ class Renamer:
 			print("\t" + action["help_opt"].ljust(self.HELP_PAD) + " : " + action["message"])
 		print()
 
-	def save(self):
-		really = userInput("Are you sure you want to save new names? ")
+	def save(self, r=None):
+		really = userInput("Are you sure you want to save new names? ") if r is None else r
 		while True:
 			if really in CONFIM: 
 				for f in self.files: 
@@ -105,11 +109,23 @@ class Renamer:
 			else:
 				really = userInput("Yes or No? ")
 
-	def quit(self):
-		really = userInput("Are you sure you want to quit? ")
+	def quit(self, r=None):
+		really = userInput("Are you sure you want to quit? ") if r is None else r
 		while True:
 			if really in CONFIM: 
 				print("Thanks for using!")
+				exit()
+			elif really in DENY:
+				return
+			else:
+				really = userInput("Yes or No? ")
+
+	def saveAndQuit(self):
+		really = userInput("Are you sure you want to save and quit? ")
+		while True:
+			if really in CONFIM: 
+				save("yes")
+				quit("yes")
 				exit()
 			elif really in DENY:
 				return

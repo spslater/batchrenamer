@@ -53,6 +53,10 @@ class Renamer:
 				"help_opt": "i[nsert]",
 				"message": "Insert string, positive from begining, negative from ending", 
 				"method": self.insertString },
+			{ "opts": ["t", "track"],
+				"help_opt": "t[rack]",
+				"message": "Load tsv file with track number and song titles.", 
+				"method": self.prependTrackNumbers },
 			{ "opts": ["n", "name"],
 				"help_opt": "n[ame]",
 				"message": "Load tsv file with episode number and titles.", 
@@ -188,6 +192,18 @@ class Renamer:
 				for f in self.files:
 					if re.search("- " + str(num) + " -", f.rename) is not None:
 						f.replace('$', title)
+						break
+		self.printFileChanges()
+
+	def prependTrackNumbers(self):
+		tsv = input("Filepath: ")
+		with open(tsv) as f:
+			for track in f:
+				num = track.split('\t')[0].strip()
+				title = track.split('\t')[1].strip()
+				for f in self.files:
+					if re.search("^" + re.escape(title) + "$", f.rename) is not None:
+						f.replace('^', str(num) + " ")
 						break
 		self.printFileChanges()
 

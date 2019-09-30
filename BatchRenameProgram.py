@@ -66,7 +66,6 @@ class Renamer:
 				"message": "Write changes and quit program, same as save then quit.", 
 				"method": self.saveAndQuit },
 		]
-		self.HELP_PAD = self._calcHelpPadding()
 		self.files = []
 		for name in names: 
 			self.files.append(FileRename(name))
@@ -95,8 +94,9 @@ class Renamer:
 					break
 
 	def help(self):
+		help_pad = self._calcHelpPadding()
 		for action in self.actions:
-			print("\t" + action["help_opt"].ljust(self.HELP_PAD) + " : " + action["message"])
+			print("\t" + action["help_opt"].ljust(self.help_pad) + " : " + action["message"])
 		print()
 
 	def save(self, r=None):

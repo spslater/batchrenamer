@@ -96,7 +96,7 @@ class Renamer:
 	def help(self):
 		help_pad = self._calcHelpPadding()
 		for action in self.actions:
-			print("\t" + action["help_opt"].ljust(self.help_pad) + " : " + action["message"])
+			print("\t" + action["help_opt"].ljust(help_pad) + " : " + action["message"])
 		print()
 
 	def save(self, r=None):

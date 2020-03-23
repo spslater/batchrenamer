@@ -2,6 +2,7 @@
 
 from os import path, rename
 from sys import argv
+import logging as log
 
 import re
 try:
@@ -9,6 +10,8 @@ try:
 except:
 	print("Readline not available")
 
+
+log.basicConfig(format='[%(levelname)s]\t%(message)s', level=log.INFO)
 
 CONFIM = ["y", "Y", "yes", "Yes"]
 DENY = ["n", "N", "no", "No"]
@@ -71,7 +74,7 @@ class Renamer:
 			self.files.append(FileRename(name))
 
 	def _todo(self):
-		print("NEED TO IMPLAMENT")
+		log.warn("NEED TO IMPLAMENT")
 
 	def _calcHelpPadding(self):
 		maxLen = 0

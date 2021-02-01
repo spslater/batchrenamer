@@ -2,7 +2,7 @@
 The Batch Rename Program allows for renaming of multiple files from the command line.
 
 ## Usage
-`brp <file> ...`
+`brp <file> ... [-a auto]`
 
 ## Operations
 ### Quit
@@ -31,3 +31,6 @@ Insert string, positive from begining, negative from ending.
 
 ### Name
 Load tsv file with episode number and titles.
+
+### Auto
+Load tsv file with operations and args listed.

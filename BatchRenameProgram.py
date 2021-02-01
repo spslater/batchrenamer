@@ -25,7 +25,7 @@ def userInput(message):
 
 
 class Renamer:
-	def __init__(self, names=[]):
+	def __init__(self, names=[], autofile=None):
 		self.actions = [
 			{ "opts": ["q", "quit"],
 				"help_opt": "q[uit]",
@@ -79,6 +79,9 @@ class Renamer:
 		self.files = []
 		for name in names:
 			self.files.append(FileRename(name))
+
+		if autofile:
+			self.automate(autofile)
 
 	def _todo(self):
 		logging.warn("NEED TO IMPLAMENT")
@@ -230,7 +233,6 @@ class Renamer:
 					if opt in act["opts"]:
 						act["method"](*args)
 						break
-
 		self.printFileChanges()
 
 
@@ -281,6 +283,8 @@ if __name__ == "__main__":
 	parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 	parser.add_argument('files', nargs='+',
 		help="Files to be renamed.")
+	parser.add_argument('-a', '-auto', dest='auto',
+		help="Inital automated file to run.", metavar="AUTO")
 
 	args = parser.parse_args()
-	Renamer(args.files).run()
+	Renamer(args.files, autofile=args.auto).run()

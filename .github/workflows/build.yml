@@ -1,0 +1,35 @@
+name: Build Standalone Apps
+on: [push]
+jobs:
+  binary:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        include:
+          - os: macos-latest
+            asset_name: brp-macos-${{ matrix.python-version }}
+          - os: ubuntu-latest
+            asset_name: brp-ubuntu-${{ matrix.python-version }}
+          - os: windows-latest
+            asset_name: brp-windows-${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Build with PyInstaller
+        run: python -OO -m PyInstaller --onefile --name brp batchrenamer/__main__.py
+      - name: Upload build to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/brp
+          asset_name: ${{ matrix.asset_name }}
+          tags: ${{ github.ref }}

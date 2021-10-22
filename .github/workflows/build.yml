@@ -9,10 +9,13 @@ jobs:
         os: 
           - version: macos-latest
             name: macos
+            output: brp
           - version: ubuntu-latest
             name: ubuntu
+            output: brp
           - version: windows-latest
             name: windows
+            output: brp.exe
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -29,6 +32,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/brp
+          file: dist/${{ matrix.os.output }}
           asset_name: brp-${{ matrix.os.name }}-${{ matrix.python-version }}
           tag: ${{ github.ref }}

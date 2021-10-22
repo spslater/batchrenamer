@@ -5,7 +5,6 @@ jobs:
     runs-on: ${{ matrix.os.version }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
         os: 
           - version: macos-latest
             name: macos
@@ -18,10 +17,10 @@ jobs:
             output: brp.exe
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -33,5 +32,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/${{ matrix.os.output }}
-          asset_name: brp-${{ matrix.os.name }}-${{ matrix.python-version }}
+          asset_name: ${{ matrix.os.name }}-${{ matrix.os.output }}
           tag: ${{ github.ref }}

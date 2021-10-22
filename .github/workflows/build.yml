@@ -2,17 +2,17 @@ name: Build Standalone Apps
 on: [push]
 jobs:
   binary:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os.version }}
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
-        include:
-          - os: macos-latest
-            asset_name: brp-macos-${{ matrix.python-version }}
-          - os: ubuntu-latest
-            asset_name: brp-ubuntu-${{ matrix.python-version }}
-          - os: windows-latest
-            asset_name: brp-windows-${{ matrix.python-version }}
+        os: 
+          - version: macos-latest
+            name: macos
+          - version: ubuntu-latest
+            name: ubuntu
+          - version: windows-latest
+            name: windows
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -31,5 +31,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/brp
-          asset_name: ${{ matrix.asset_name }}
+          asset_name: brp-${{ matrix.os.name }}-${{ matrix.python-version }}
           tags: ${{ github.ref }}

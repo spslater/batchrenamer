@@ -1,10 +1,10 @@
 """Manage file changes"""
+__all__ = ["FileInfo", "FileHistory"]
+
 import re
 from collections import namedtuple
 from os import path, rename
 from os.path import join
-
-__all__ = ["FileInfo", "FileHistory"]
 
 
 class FileInfo(namedtuple("FileInfo", ["directory", "name", "ext"])):

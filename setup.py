@@ -1,12 +1,14 @@
 """BorgAPI Package Setup"""
 import setuptools
 
+from batchrenamer import __version__
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="batchrenamer",
-    version="1.3.0",
+    version=__version__,
     author="Sean Slater",
     author_email="seanslater@whatno.io",
     description="Rename multiple files with the same rules",

@@ -1,14 +1,17 @@
 """Run the batchrenamer as one"""
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from argparse import ArgumentParser
 
-from batchrenamer import BatchRenamer
+from batchrenamer import BatchRenamer, __version__
 
 
 def main():
     """Run when called from the command line"""
-    parser = ArgumentParser(
-        formatter_class=ArgumentDefaultsHelpFormatter,
-        prog="brp",
+    parser = ArgumentParser(prog="brp")
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     parser.add_argument("filename", nargs="+", help="list of files to rename")
     parser.add_argument(

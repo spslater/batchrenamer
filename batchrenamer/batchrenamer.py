@@ -1,12 +1,17 @@
 """Batch Rename Program"""
+__all__ = ["BatchRenamer"]
+
 import re
 import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from shlex import split
 
-from .filehistory import FileHistory
+try:
+    import readline
+except:
+    print("History not available")
 
-__all__ = ["BatchRenamer"]
+from .filehistory import FileHistory
 
 CONFIM = [True, "y", "yes"]
 DENY = [False, "n", "no"]
@@ -48,7 +53,7 @@ class BatchRenamer:
     def automate(self, *autofiles):
         """Take file with list of commands and make those changes"""
         for autofile in autofiles:
-            with open(autofile) as fp:
+            with open(autofile, "r", encoding="utf-8") as fp:
                 for line in fp.readlines():
                     split_args = self.parser.convert_arg_line_to_args(line)
                     if split_args:
@@ -64,7 +69,7 @@ class BatchRenamer:
         display_changes = True
         for filename in filenames:
             try:
-                with open(filename, "r") as fp:
+                with open(filename, "r", encoding="utf-8") as fp:
                     for line in fp.readlines():
                         episode, title = line.split(maxsplit=1)
                         episode = episode.strip()
@@ -177,7 +182,7 @@ class BatchRenamer:
             filenames = [filenames]
         for filename in filenames:
             try:
-                with open(filename) as fp:
+                with open(filename, "r", encoding="utf-8") as fp:
                     for line in fp.readlines():
                         number, track = line.split(maxsplit=1)
                         number = number.strip()

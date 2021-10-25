@@ -79,17 +79,20 @@ def generate_parser(renamer):
         help="automate some commands in order to speed up repetative tasks",
         exit_on_error=False,
     )
-    automate_parser.set_defaults(func=renamer.manual_automate)
-    automate_parser.add_argument("filenames", nargs="?")
+    automate_parser.set_defaults(func=renamer.automate_manual)
+    automate_parser.add_argument("filenames", nargs="*")
 
-    episode_parser = subparsers.add_parser(
+    append_parser = subparsers.add_parser(
         "end",
         aliases=["e"],
-        help="tsv with pattern and value to append to each file that matches",
+        help="pattern and value to append to each file that matches, can be automated with a file",
         exit_on_error=False,
     )
-    episode_parser.set_defaults(func=renamer.append_value)
-    episode_parser.add_argument("filenames", nargs="?")
+    append_parser.set_defaults(func=renamer.append)
+    append_parser.add_argument("find", nargs="?")
+    append_parser.add_argument("replace", nargs="?")
+    append_parser.add_argument("-f", "--filenames", dest="filenames", nargs="+")
+    append_parser.add_argument("-p", "--padding", dest="padding", default=" ")
 
     extension_parser = subparsers.add_parser(
         "extension",
@@ -101,14 +104,17 @@ def generate_parser(renamer):
     extension_parser.add_argument("ext", nargs="?")
     extension_parser.add_argument("pattern", nargs="?")
 
-    track_parser = subparsers.add_parser(
+    prepend_parser = subparsers.add_parser(
         "front",
         aliases=["f", "fr"],
         help="tsv with pattern and value to prepend to each file that matches",
         exit_on_error=False,
     )
-    track_parser.set_defaults(func=renamer.prepend_value)
-    track_parser.add_argument("filenames", nargs="?")
+    prepend_parser.set_defaults(func=renamer.prepend)
+    prepend_parser.add_argument("find", nargs="?")
+    prepend_parser.add_argument("replace", nargs="?")
+    prepend_parser.add_argument("-f", "--filenames", dest="filenames", nargs="+")
+    prepend_parser.add_argument("-p", "--padding", dest="padding", default=" ")
 
     insert_parser = subparsers.add_parser(
         "insert",

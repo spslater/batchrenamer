@@ -124,15 +124,15 @@ class BatchRenamerTests(unittest.TestCase):
         """Add episode names to files"""
         ep_list = join(self.res, "eps.tsv")
         ep1 = join(self.res, "Show - 0101.txt")
-        ep1_title = join(self.res, "Show - 0101 - Foo.txt")
-        ep2 = join(self.res, "Show - s01e02 -.txt")
+        ep1_title = join(self.res, "Show - 0101Foo.txt")
+        ep2 = join(self.res, "Show - s01e02 - .txt")
         ep2_title = join(self.res, "Show - s01e02 - Bar.txt")
         self._touch(ep1)
         self._touch(ep2)
         with open(ep_list, "w+") as fp:
             fp.write("0101 Foo\ns01e02 Bar")
         self.brp = BatchRenamer(ep1, ep2)
-        resp_args = self.brp.parser.parse_args(["ep", ep_list])
+        resp_args = self.brp.parser.parse_args(["e", "-f", ep_list])
         with mock.patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resp_args.func(resp_args)
         values = mock_stdout.getvalue().splitlines()
@@ -151,9 +151,9 @@ class BatchRenamerTests(unittest.TestCase):
         self._touch(tr1)
         self._touch(tr2)
         with open(tr_list, "w+") as fp:
-            fp.write("01 Foo\n02 Bar")
+            fp.write("Foo 01\nBar 02")
         self.brp = BatchRenamer(tr1, tr2)
-        resp_args = self.brp.parser.parse_args(["tr", tr_list])
+        resp_args = self.brp.parser.parse_args(["f", "-f", tr_list])
         with mock.patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resp_args.func(resp_args)
         values = mock_stdout.getvalue().splitlines()

@@ -4,6 +4,7 @@ __all__ = ["BatchRenamer"]
 import re
 import sys
 from argparse import ArgumentError, Namespace
+from copy import deepcopy
 from shlex import split
 
 import batchrenamer.messages as messages
@@ -17,7 +18,7 @@ except ModuleNotFoundError:
 from .filehistory import FileHistory
 from .parser import generate_parser
 
-CONFIM = [True, "y", "yes"]
+CONFIRM = [True, "y", "yes"]
 DENY = [False, "n", "no"]
 BACK = ["b", "back", "q", "quit"]
 
@@ -69,50 +70,117 @@ class BatchRenamer:
             file_.print_changes()
         print("-" * 20)
 
-    def manual_automate(self, args):
-        """pass in manual automation filenames"""
+    def automate_manual(self, args):
+        """Pass in manual automation filenames"""
         filenames = args.filenames or split(input("Filepath(s): "))
         self.automate(*filenames)
 
     def automate(self, *autofiles):
         """Take file with list of commands and make those changes"""
         for autofile in autofiles:
-            with open(autofile, "r", encoding="utf-8") as fp:
-                for line in fp.readlines():
+            try:
+                with open(autofile, "r", encoding="utf-8") as fp:
+                    lines = fp.readlines()
+            except FileNotFoundError:
+                print(
+                    f"Unable to open {autofile}; moving to next file provided (if any)"
+                )
+            else:
+                for line in lines:
                     split_args = self.parser.convert_arg_line_to_args(line)
                     if split_args:
                         args = self.parser.parse_args(split_args)
                         setattr(args, "automated", True)
                         args.func(args)
 
-    def append_value(self, args):
-        """Add tv episode title to end of file name"""
+    def append(self, args):
+        """Append value to filenames either from a file or manually provided"""
+        self._pend(args, self._append_file, self._append_manual)
+
+    def prepend(self, args):
+        """Prepend value to filenames either from a file or manually provided"""
+        self._pend(args, self._prepend_file, self._prepend_manual)
+
+    def _pend(self, args, auto, manual):
+        """Add value to begining or end of filename from a file or manaully provided"""
+        prev_auto = getattr(args, "automated", False)
+        setattr(args, "automated", True)
+        if not args.filenames and not args.find and not args.replace:
+            do_files = self._low_input("Load from files? Yes or No?: ")
+            if do_files in CONFIRM:
+                auto(args)
+        elif args.filenames:
+            auto(args)
+        if args.find or args.replace or not args.filenames:
+            manual(args)
+        if not prev_auto:
+            self._print_file_changes()
+
+    def _append_manual(self, og_args):
+        """Append a value to filenames that match given pattern"""
+        args = deepcopy(og_args)
+        find = args.find or input("Find: ")
+        repl = args.replace or input("Append: ")
+        setattr(args, "find", find)
+        setattr(args, "replace", f"{args.padding}{repl}")
+        setattr(args, "side", r"$")
+        self._pend_manual(args)
+
+    def _append_file(self, og_args):
+        """Add value to ending of filenames that match pattern from file"""
+        args = deepcopy(og_args)
+        setattr(args, "side", r"$")
+        return self._pend_file(args)
+
+    def _prepend_manual(self, og_args):
+        """Prepend a value to filenames that match given pattern"""
+        args = deepcopy(og_args)
+        find = args.find or input("Find: ")
+        repl = args.replace or input("Prepend: ")
+        setattr(args, "find", find)
+        setattr(args, "replace", f"{repl}{args.padding}")
+        setattr(args, "side", r"^")
+        self._pend_manual(args)
+
+    def _prepend_file(self, og_args):
+        """Add value to beginging of filenames that match pattern from file"""
+        args = deepcopy(og_args)
+        setattr(args, "side", r"^")
+        return self._pend_file(args)
+
+    def _pend_file(self, og_args):
+        """Add value to begining or end of filename from file"""
+        args = deepcopy(og_args)
         filenames = args.filenames or split(input("Filepath(s): "))
         if not isinstance(filenames, list):
             filenames = [filenames]
-        display_changes = True
         for filename in filenames:
             try:
                 with open(filename, "r", encoding="utf-8") as fp:
-                    for line in fp.readlines():
-                        episode, title = line.split(maxsplit=1)
-                        episode = episode.strip()
-                        title = title.strip()
-                        for file_ in self.files:
-                            if re.search(f"- {episode}" r"[\-\s]*$", file_.rename.name):
-                                file_.replace(
-                                    f"{episode}" r"[\-\s]*$",
-                                    f"{episode} - {title}",
-                                )
-                                break
+                    lines = fp.readlines()
             except FileNotFoundError:
                 print(
                     f"Unable to open {filename}; moving to next file provided (if any)"
                 )
-                display_changes = False
             else:
-                display_changes = True
-        if not getattr(args, "automated", False) and display_changes:
+                for line in lines:
+                    try:
+                        find, repl = split(line)[:2]
+                    except ValueError:
+                        continue
+                    setattr(args, "find", find)
+                    setattr(args, "replace", repl)
+                    self._pend_manual(args)
+            if not getattr(args, "automated", False):
+                self._print_file_changes()
+
+    def _pend_manual(self, og_args):
+        """Add value to begining or end of filename"""
+        args = deepcopy(og_args)
+        for file_ in self.files:
+            if re.search(args.find, file_.rename.name):
+                file_.replace(args.side, args.replace)
+        if not getattr(args, "automated", False):
             self._print_file_changes()
 
     def change_ext(self, args):
@@ -157,7 +225,7 @@ class BatchRenamer:
                 test = re.sub(find, repl, test_file)
                 print(f"Example: {test}")
                 good = args.confirm or self._low_input("Right index? ")
-                if good in CONFIM:
+                if good in CONFIRM:
                     break
                 if good in BACK:
                     return
@@ -176,7 +244,7 @@ class BatchRenamer:
         """Exit program"""
         really = args.confirm or self._low_input("Are you sure you want to quit? ")
         while True:
-            if really in CONFIM:
+            if really in CONFIRM:
                 print("Thanks for using!")
                 sys.exit()
             if really in DENY:
@@ -198,7 +266,7 @@ class BatchRenamer:
             "Are you sure you want to save new names? "
         )
         while True:
-            if really in CONFIM:
+            if really in CONFIRM:
                 for file_ in self.files:
                     file_.save()
                 print("Files renamed.")
@@ -207,29 +275,6 @@ class BatchRenamer:
                 print("No files renamed.")
                 break
             really = self._low_input("Yes or No? ")
-
-    def prepend_value(self, args):
-        """Add track number for music to beginging"""
-        filenames = args.filenames or split(input("Filepath(s): "))
-        if not isinstance(filenames, list):
-            filenames = [filenames]
-        for filename in filenames:
-            try:
-                with open(filename, "r", encoding="utf-8") as fp:
-                    for line in fp.readlines():
-                        number, track = line.split(maxsplit=1)
-                        number = number.strip()
-                        track = track.strip()
-                        for file_ in self.files:
-                            if re.search(f"^{re.escape(track)}$", file_.rename.name):
-                                file_.replace("^", f"{number} ")
-                                break
-            except FileNotFoundError:
-                print(
-                    f"Unable to open {filename}; moving to next file provided (if any)"
-                )
-            if not getattr(args, "automated", False):
-                self._print_file_changes()
 
     def undo(self, args):
         """Undo last changes"""
@@ -254,7 +299,7 @@ class BatchRenamer:
         """save changes, exit the program"""
         really = args.confirm or ("Are you sure you want to save and quit? ")
         while True:
-            if really in CONFIM:
+            if really in CONFIRM:
                 args.confirm = True
                 self.save(args)
                 self.quit_app(args)

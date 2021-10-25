@@ -45,16 +45,16 @@ class BatchRenamer:
             try:
                 resp_args = self.parser.parse_args(args)
             except ArgumentError as e:
-                args = Namespace()
+                error_args = Namespace()
                 if e.message.startswith("unrecognized arguments"):
                     print("ERROR: Invalid argument\n")
-                    setattr(args, "subparsers", [args[0]])
+                    setattr(error_args, "subparsers", [args[0]])
                 elif e.message.startswith("invalid choice"):
                     print("ERROR: Unknown command")
-                    setattr(args, "small", True)
+                    setattr(error_args, "small", True)
                 else:
                     print(e.message)
-                self.print_help(args)
+                self.print_help(error_args)
             else:
                 resp_args.func(resp_args)
 

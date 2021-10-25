@@ -40,8 +40,9 @@ class BatchRenamer:
             self.automate(*self.autofiles)
 
         while True:
-            response = self._user_answer("Action: ")
+            response = input("Action: ")
             args = split(response)
+            args[0] = args[0].lower()
             try:
                 resp_args = self.parser.parse_args(args)
             except ArgumentError as e:
@@ -59,7 +60,7 @@ class BatchRenamer:
                 resp_args.func(resp_args)
 
     @staticmethod
-    def _user_answer(message):
+    def _low_input(message):
         """Get user input and lower it"""
         return input(message).lower()
 
@@ -141,7 +142,10 @@ class BatchRenamer:
         test_file = self.files[0].rename.name
         while True:
             try:
-                num = args.index or int(self._user_answer("Index: "))
+                num = args.index or int(input("Index: "))
+            except ValueError:
+                print("Please enter a positive or negative integer.")
+            else:
                 test_len = len(test_file)
                 if num >= 0:
                     idx = num if num < test_len else test_len
@@ -152,15 +156,13 @@ class BatchRenamer:
                 repl = r"\1" f"{val}" r"\2"
                 test = re.sub(find, repl, test_file)
                 print(f"Example: {test}")
-                good = args.confirm or self._user_answer("Right index? ")
+                good = args.confirm or self._low_input("Right index? ")
                 if good in CONFIM:
                     break
                 if good in BACK:
                     return
                 if good in DENY:
                     args.index = None
-            except ValueError:
-                print("Please enter a positive or negative integer.")
             print()
         setattr(args, "find", find)
         setattr(args, "replace", repl)
@@ -172,14 +174,14 @@ class BatchRenamer:
 
     def quit_app(self, args):
         """Exit program"""
-        really = args.confirm or self._user_answer("Are you sure you want to quit? ")
+        really = args.confirm or self._low_input("Are you sure you want to quit? ")
         while True:
             if really in CONFIM:
                 print("Thanks for using!")
                 sys.exit()
             if really in DENY:
                 break
-            really = self._user_answer("Yes or No? ")
+            really = self._low_input("Yes or No? ")
 
     def find_and_replace(self, args):
         """Find pattern and replace with new pattern"""
@@ -192,7 +194,7 @@ class BatchRenamer:
 
     def save(self, args):
         """Save name changes"""
-        really = args.confirm or self._user_answer(
+        really = args.confirm or self._low_input(
             "Are you sure you want to save new names? "
         )
         while True:
@@ -204,7 +206,7 @@ class BatchRenamer:
             if really in DENY:
                 print("No files renamed.")
                 break
-            really = self._user_answer("Yes or No? ")
+            really = self._low_input("Yes or No? ")
 
     def prepend_value(self, args):
         """Add track number for music to beginging"""
@@ -258,4 +260,4 @@ class BatchRenamer:
                 self.quit_app(args)
             if really in DENY:
                 return
-            really = self._user_answer("Yes or No? ")
+            really = self._low_input("Yes or No? ")

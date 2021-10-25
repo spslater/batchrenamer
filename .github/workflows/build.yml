@@ -33,4 +33,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/${{ matrix.os.output }}
           asset_name: ${{ matrix.os.name }}-${{ matrix.os.output }}
+          overwrite: true
           tag: ${{ github.ref }}

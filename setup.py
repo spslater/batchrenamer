@@ -20,6 +20,8 @@ setuptools.setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
@@ -28,5 +30,5 @@ setuptools.setup(
         "Environment :: Console",
     ],
     keywords="filesystem files rename batch",
-    python_requires=">=3.9",
+    python_requires=">=3.7",
 )

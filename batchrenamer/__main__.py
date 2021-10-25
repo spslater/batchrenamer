@@ -6,7 +6,10 @@ from batchrenamer import BatchRenamer, __version__
 
 def main():
     """Run when called from the command line"""
-    parser = ArgumentParser(prog="brp")
+    parser = ArgumentParser(
+        prog="brp",
+        description="rename batches of files at one time",
+    )
     parser.add_argument(
         "-V",
         "--version",
@@ -24,7 +27,8 @@ def main():
     )
     cli_args = parser.parse_intermixed_args()
     # pylint: disable=not-callable
-    BatchRenamer(*cli_args.filename, autofiles=cli_args.autofiles).run()
+    renamer = BatchRenamer(*cli_args.filename, autofiles=cli_args.autofiles)
+    renamer()
 
 
 if __name__ == "__main__":

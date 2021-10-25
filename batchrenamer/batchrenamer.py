@@ -3,37 +3,60 @@ __all__ = ["BatchRenamer"]
 
 import re
 import sys
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from argparse import ArgumentError, Namespace
 from shlex import split
 
+import batchrenamer.messages as messages
+
 try:
+    # pylint: disable=unused-import
     import readline
-except:
+except ModuleNotFoundError:
     print("History not available")
 
 from .filehistory import FileHistory
+from .parser import generate_parser
 
 CONFIM = [True, "y", "yes"]
 DENY = [False, "n", "no"]
 BACK = ["b", "back", "q", "quit"]
 
 
-class ShlexArgumentParser(ArgumentParser):
-    """Argument Parser that splits lines based on the split method from shlex package"""
-
-    def convert_arg_line_to_args(self, arg_line):
-        if arg_line and not re.match(r"\s*#", arg_line):
-            return split(arg_line)
-        return []
-
-
 class BatchRenamer:
     """Renaming thing"""
 
     def __init__(self, *filenames, autofiles=None):
-        self.parser = self.generate_parser()
+        self.parser = generate_parser(self)
         self.files = [FileHistory(filename) for filename in filenames]
         self.autofiles = autofiles or []
+
+        self._help_text = messages.ALL
+        self._help_dic = messages.MESSAGES
+        self._help_small = messages.SMALL
+
+    def __call__(self):
+        """Go thru renaming things"""
+        if self.autofiles:
+            self.automate(*self.autofiles)
+
+        while True:
+            response = self._user_answer("Action: ")
+            args = split(response)
+            try:
+                resp_args = self.parser.parse_args(args)
+            except ArgumentError as e:
+                args = Namespace()
+                if e.message.startswith("unrecognized arguments"):
+                    print("ERROR: Invalid argument\n")
+                    setattr(args, "subparsers", [args[0]])
+                elif e.message.startswith("invalid choice"):
+                    print("ERROR: Unknown command")
+                    setattr(args, "small", True)
+                else:
+                    print(e.message)
+                self.print_help(args)
+            else:
+                resp_args.func(resp_args)
 
     @staticmethod
     def _user_answer(message):
@@ -61,7 +84,7 @@ class BatchRenamer:
                         setattr(args, "automated", True)
                         args.func(args)
 
-    def append_episode_names(self, args):
+    def append_value(self, args):
         """Add tv episode title to end of file name"""
         filenames = args.filenames or split(input("Filepath(s): "))
         if not isinstance(filenames, list):
@@ -100,9 +123,17 @@ class BatchRenamer:
         if not getattr(args, "automated", False):
             self._print_file_changes()
 
-    def help_message(self, _):
+    def print_help(self, args=None):
         """Display help message"""
-        self.parser.print_help()
+        if args is None or getattr(args, "small", False):
+            print(self._help_small)
+            return
+        subparsers = [s for s in getattr(args, "subparsers", []) if s in self._help_dic]
+        if not subparsers:
+            print(self._help_text)
+            return
+        for sub in args.subparsers:
+            print(self._help_dic[sub])
 
     def insert_string(self, args):
         """Insert value in specific position"""
@@ -175,7 +206,7 @@ class BatchRenamer:
                 break
             really = self._user_answer("Yes or No? ")
 
-    def prepend_track_numbers(self, args):
+    def prepend_value(self, args):
         """Add track number for music to beginging"""
         filenames = args.filenames or split(input("Filepath(s): "))
         if not isinstance(filenames, list):
@@ -228,130 +259,3 @@ class BatchRenamer:
             if really in DENY:
                 return
             really = self._user_answer("Yes or No? ")
-
-    # pylint: disable=too-many-locals
-    def generate_parser(self):
-        """Create parser that will read user input"""
-        confirm_args = ["-c", "--confirm"]
-        confirm_kwargs = {
-            "dest": "confirm",
-            "action": "store_true",
-            "default": False,
-        }
-
-        parser = ShlexArgumentParser(
-            formatter_class=ArgumentDefaultsHelpFormatter,
-            add_help=False,
-            usage="brp filename [filename ...]",
-        )
-        subparsers = parser.add_subparsers()
-
-        automate_parser = subparsers.add_parser(
-            "automate",
-            aliases=["a", "auto"],
-            help="automate some commands in order to speed up repetative tasks",
-        )
-        automate_parser.set_defaults(func=self.manual_automate)
-        automate_parser.add_argument("filenames", nargs="?")
-
-        episode_parser = subparsers.add_parser(
-            "episodes",
-            aliases=["e", "ep"],
-            help="load files with episode number and titles",
-        )
-        episode_parser.set_defaults(func=self.append_episode_names)
-        episode_parser.add_argument("filenames", nargs="?")
-
-        extension_parser = subparsers.add_parser(
-            "extension",
-            aliases=["x", "ext"],
-            help="change the extension on all files or files that match pattern",
-        )
-        extension_parser.set_defaults(func=self.change_ext)
-        extension_parser.add_argument("ext", nargs="?")
-        extension_parser.add_argument("pattern", nargs="?")
-
-        help_parser = subparsers.add_parser(
-            "help",
-            aliases=["h", "?"],
-            help="display help message",
-        )
-        help_parser.set_defaults(func=self.help_message)
-
-        insert_parser = subparsers.add_parser(
-            "insert",
-            aliases=["i"],
-            help="insert string, positive from begining, negative from ending",
-        )
-        insert_parser.set_defaults(func=self.insert_string)
-        insert_parser.add_argument(*confirm_args, **confirm_kwargs)
-        insert_parser.add_argument("value", nargs="?")
-        insert_parser.add_argument("index", nargs="?", type=int)
-
-        print_parser = subparsers.add_parser(
-            "list",
-            aliases=["l"],
-            help="lists current files being modified",
-        )
-        print_parser.set_defaults(func=self.list_file_changes)
-
-        quit_parser = subparsers.add_parser(
-            "quit",
-            aliases=["q"],
-            help="quit program, don't apply unsaved changes",
-        )
-        quit_parser.set_defaults(func=self.quit_app)
-        quit_parser.add_argument(*confirm_args, **confirm_kwargs)
-
-        find_replace_parser = subparsers.add_parser(
-            "replace",
-            aliases=["r", "re"],
-            help="find and replace based on a regex",
-        )
-        find_replace_parser.set_defaults(func=self.find_and_replace)
-        find_replace_parser.add_argument("find", nargs="?")
-        find_replace_parser.add_argument("replace", nargs="?")
-
-        save_parser = subparsers.add_parser(
-            "save",
-            aliases=["s"],
-            help="save files with current changes",
-        )
-        save_parser.set_defaults(func=self.save)
-        save_parser.add_argument(*confirm_args, **confirm_kwargs)
-
-        track_parser = subparsers.add_parser(
-            "tracks",
-            aliases=["t", "tr"],
-            help="load file with track number and song titles",
-        )
-        track_parser.set_defaults(func=self.prepend_track_numbers)
-        track_parser.add_argument("filenames", nargs="?")
-
-        undo_parser = subparsers.add_parser(
-            "undo",
-            aliases=["u"],
-            help="undo last change made",
-        )
-        undo_parser.set_defaults(func=self.undo)
-        undo_parser.add_argument("number", nargs="?", type=int, default=1)
-
-        save_quit_parser = subparsers.add_parser(
-            "write",
-            aliases=["w"],
-            help="write changes and quit program, same as save then quit",
-        )
-        save_quit_parser.set_defaults(func=self.save_and_quit)
-        save_quit_parser.add_argument(*confirm_args, **confirm_kwargs)
-
-        return parser
-
-    def run(self):
-        """Go thru renaming things"""
-        if self.autofiles:
-            self.automate(*self.autofiles)
-
-        while True:
-            response = self._user_answer("Action: ")
-            resp_args = self.parser.parse_args(split(response))
-            resp_args.func(resp_args)

@@ -87,6 +87,13 @@ class FileHistory:
             return True
         return False
 
+    def reset(self):
+        """Reset to inital state"""
+        self.current = self.original
+        self.name_list = []
+        self.previous = self.original
+        self.rename = self.previous
+
     def save(self):
         """Save new filename"""
         self.move()
@@ -101,3 +108,20 @@ class FileHistory:
     def print_changes(self):
         """Print change from original name to current name"""
         print(self.current.fullname + "\n" + self.rename.fullname + "\n")
+
+    def print_history(self):
+        """Print file changes up"""
+        print(self.current.fullname + "\n" + self.rename.fullname)
+        num = len(self.name_list)
+        if self.previous.name != self.original.name:
+            num += 1
+        pad = len(str(num))
+        if not num:
+            print("   NA\n")
+            return
+        for name in self.name_list:
+            print(f"   {str(num).rjust(pad)}  {name.name}")
+            num -= 1
+        print(f"   {str(num).rjust(pad)}  {self.previous.name}")
+        num -= 1
+        print("~"*20)

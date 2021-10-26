@@ -7,8 +7,6 @@ from argparse import ArgumentError, Namespace
 from copy import deepcopy
 from shlex import split
 
-import batchrenamer.messages as messages
-
 try:
     # pylint: disable=unused-import
     import readline
@@ -27,13 +25,20 @@ class BatchRenamer:
     """Renaming thing"""
 
     def __init__(self, *filenames, autofiles=None):
-        self.parser = generate_parser(self)
+        self.parser, help_list = generate_parser(self)
+
+        _help_dic = {}
+        for _help in help_list:
+            _help_dic.update(_help.cmds)
+
+        self._help_dic = _help_dic
+        self._help_text = "\n".join([h.help for h in help_list])
+        self._help_small = "\n".join([f"   {h.usage}" for h in help_list])
+
         self.files = [FileHistory(filename) for filename in filenames]
         self.autofiles = autofiles or []
 
-        self._help_text = messages.ALL
-        self._help_dic = messages.MESSAGES
-        self._help_small = messages.SMALL
+
 
     def __call__(self):
         """Go thru renaming things"""
@@ -104,10 +109,12 @@ class BatchRenamer:
 
     def append(self, args):
         """Append value to filenames either from a file or manually provided"""
+        setattr(args, "replace", args.append)
         self._pend(args, self._append_file, self._append_manual)
 
     def prepend(self, args):
         """Prepend value to filenames either from a file or manually provided"""
+        setattr(args, "replace", args.prepend)
         self._pend(args, self._prepend_file, self._prepend_manual)
 
     def _pend(self, args, auto, manual):
@@ -186,8 +193,7 @@ class BatchRenamer:
         """Add value to begining or end of filename"""
         args = deepcopy(og_args)
         for file_ in self.files:
-            if re.search(args.find, file_.rename.name):
-                file_.replace(args.side, args.replace)
+            file_.replace(args.side, args.replace)
         self._print_file_changes(args)
 
     def change_ext(self, args):
@@ -203,12 +209,12 @@ class BatchRenamer:
         if args is None or getattr(args, "small", False):
             print(self._help_small)
             return
-        subparsers = [s for s in getattr(args, "subparsers", []) if s in self._help_dic]
-        if not subparsers:
+        commands = [s for s in getattr(args, "commands", []) if s in self._help_dic]
+        if not commands:
             print(self._help_text)
             return
-        for sub in args.subparsers:
-            print(self._help_dic[sub])
+        for sub in args.commands:
+            print(self._help_dic[sub].help)
 
     def insert_string(self, args):
         """Insert value in specific position"""
@@ -245,6 +251,27 @@ class BatchRenamer:
     def list_file_changes(self, _):
         """List the current changes to the files"""
         self._print_file_changes()
+
+    def history(self, args):
+        """Print history of file changes"""
+        if args.peak:
+            self.files[0].print_history()
+            return
+        for file_ in self.files:
+            file_.print_history()
+        print("-" * 20)
+
+    def reset(self, args):
+        """Reset filenames"""
+        really = args.confirm or self._low_input("Really reset? No undoing this action. ")
+        while True:
+            if really in CONFIRM:
+                for file_ in self.files:
+                    file_.reset()
+                break
+            if really in DENY:
+                break
+            really = self._low_input("Yes or No? ")
 
     def quit_app(self, args):
         """Exit program"""

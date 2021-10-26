@@ -78,6 +78,11 @@ class FileHistory:
         self.previous = self.rename
         self.rename = self.rename._replace(name=new_name)
 
+    def noop(self):
+        """Perform noop for when no action should be taken"""
+        self.name_list.append(self.previous)
+        self.previous = self.rename
+
     def undo(self):
         """Undo last filename"""
         length = len(self.name_list)

@@ -29,7 +29,7 @@ class ShlexArgumentParser(ArgumentParser):
     """Argument Parser that splits lines based on the split method from shlex package"""
 
     def convert_arg_line_to_args(self, arg_line):
-        if arg_line and not re.match(r"\s*#", arg_line):
+        if arg_line.strip() and not re.match(r"\s*#", arg_line):
             return split(arg_line)
         return []
 
@@ -326,15 +326,15 @@ def generate_parser(renamer):
         _save_parser(("save", "s"), subparsers, renamer),
         _quit_parser(("quit", "q", "exit"), subparsers, renamer),
         _save_quit_parser(("write", "w"), subparsers, renamer),
-        _print_parser(("list", "l"), subparsers, renamer),
+        _print_parser(("list", "ls", "l"), subparsers, renamer),
         _history_parser(("history", "hist", "past"), subparsers, renamer),
         _undo_parser(("undo", "u"), subparsers, renamer),
         _reset_parser(("reset", "over", "o"), subparsers, renamer),
         _automate_parser(("automate", "a", "auto"), subparsers, renamer),
-        _find_replace_parser(("replace", "r", "re", "regex"), subparsers, renamer),
-        _append_parser(("end", "e"), subparsers, renamer),
-        _prepend_parser(("front", "f", "fr"), subparsers, renamer),
-        _insert_parser(("insert", "i"), subparsers, renamer),
+        _find_replace_parser(("replace", "r", "re", "reg", "regex"), subparsers, renamer),
+        _append_parser(("append", "ap"), subparsers, renamer),
+        _prepend_parser(("prepend", "p", "pre"), subparsers, renamer),
+        _insert_parser(("insert", "i", "in"), subparsers, renamer),
         _case_parser(("case", "c"), subparsers, renamer),
         _extension_parser(("extension", "x", "ext"), subparsers, renamer),
     ]

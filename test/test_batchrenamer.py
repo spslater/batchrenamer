@@ -120,19 +120,19 @@ class BatchRenamerTests(unittest.TestCase):
             )
         self.assertTrue(isfile(join(self.res, "bar.txt")))
 
-    def test_episoes(self):
-        """Add episode names to files"""
+    def test_append(self):
+        """Append names to files"""
         ep_list = join(self.res, "eps.tsv")
         ep1 = join(self.res, "Show - 0101.txt")
-        ep1_title = join(self.res, "Show - 0101Foo.txt")
-        ep2 = join(self.res, "Show - s01e02 - .txt")
+        ep1_title = join(self.res, "Show - 0101 Foo.txt")
+        ep2 = join(self.res, "Show - s01e02 -.txt")
         ep2_title = join(self.res, "Show - s01e02 - Bar.txt")
         self._touch(ep1)
         self._touch(ep2)
         with open(ep_list, "w+") as fp:
             fp.write("0101 Foo\ns01e02 Bar")
         self.brp = BatchRenamer(ep1, ep2)
-        resp_args = self.brp.parser.parse_args(["e", "-f", ep_list])
+        resp_args = self.brp.parser.parse_args(["ap", "-f", ep_list])
         with mock.patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resp_args.func(resp_args)
         values = mock_stdout.getvalue().splitlines()
@@ -141,8 +141,8 @@ class BatchRenamerTests(unittest.TestCase):
         self.assertEqual(values[3], ep2)
         self.assertEqual(values[4], ep2_title)
 
-    def test_tracks(self):
-        """Add track numbers to files"""
+    def test_prepend(self):
+        """Prepend numbers to files"""
         tr_list = join(self.res, "trs.tsv")
         tr1 = join(self.res, "Foo.txt")
         tr1_title = join(self.res, "01 Foo.txt")
@@ -153,7 +153,7 @@ class BatchRenamerTests(unittest.TestCase):
         with open(tr_list, "w+") as fp:
             fp.write("Foo 01\nBar 02")
         self.brp = BatchRenamer(tr1, tr2)
-        resp_args = self.brp.parser.parse_args(["f", "-f", tr_list])
+        resp_args = self.brp.parser.parse_args(["pre", "-f", tr_list])
         with mock.patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resp_args.func(resp_args)
         values = mock_stdout.getvalue().splitlines()

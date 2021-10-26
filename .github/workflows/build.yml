@@ -1,5 +1,8 @@
 name: Build Standalone Apps
-on: [push]
+on: 
+  push:
+    tags:
+      - '*'
 jobs:
   binary:
     runs-on: ${{ matrix.os.version }}

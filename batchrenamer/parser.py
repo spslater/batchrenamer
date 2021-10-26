@@ -82,6 +82,15 @@ def generate_parser(renamer):
     automate_parser.set_defaults(func=renamer.automate_manual)
     automate_parser.add_argument("filenames", nargs="*")
 
+    case_parser = subparsers.add_parser(
+        "case",
+        aliases=["c"],
+        help="change the case (title, upper, lower) of files",
+        exit_on_error=False,
+    )
+    case_parser.set_defaults(func=renamer.change_case)
+    case_parser.add_argument("styles", type=str, nargs="*")
+
     append_parser = subparsers.add_parser(
         "end",
         aliases=["e"],
@@ -124,7 +133,7 @@ def generate_parser(renamer):
     )
     insert_parser.set_defaults(func=renamer.insert_string)
     insert_parser.add_argument(*confirm_args, **confirm_kwargs)
-    insert_parser.add_argument("value", nargs="?")
+    insert_parser.add_argument("value", nargs="?", type=str)
     insert_parser.add_argument("index", nargs="?", type=int)
 
     print_parser = subparsers.add_parser(

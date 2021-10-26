@@ -6,6 +6,8 @@ from collections import namedtuple
 from os import path, rename
 from os.path import join
 
+from .strcase import CASE
+
 
 class FileInfo(namedtuple("FileInfo", ["directory", "name", "ext"])):
     """Information about a file
@@ -47,6 +49,16 @@ class FileHistory:
     def fullname(directory, name, ext):
         """Get full name of file"""
         return join(directory, f"{name}{ext}")
+
+    def change_case(self, cases):
+        """Change the case of the name"""
+        self.name_list.append(self.previous)
+        new_name = self.rename.name
+        for case in cases:
+            func = CASE.get(case, CASE["default"])
+            new_name = func(new_name)
+        self.previous = self.rename
+        self.rename = self.rename._replace(name=new_name)
 
     def change_ext(self, new_ext, pattern=None):
         """Change the extension of a file"""

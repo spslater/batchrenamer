@@ -65,7 +65,9 @@ class BatchRenamer:
         """Get user input and lower it"""
         return input(message).lower()
 
-    def _print_file_changes(self):
+    def _print_file_changes(self, args=None):
+        if getattr(args, "automated", False):
+            return
         for file_ in self.files:
             file_.print_changes()
         print("-" * 20)
@@ -93,6 +95,13 @@ class BatchRenamer:
                         setattr(args, "automated", True)
                         args.func(args)
 
+    def change_case(self, args):
+        """Change the case of the filenames"""
+        styles = args.styles or split(input("Styles?: "))
+        for file_ in self.files:
+            file_.change_case(styles)
+        self._print_file_changes(args)
+
     def append(self, args):
         """Append value to filenames either from a file or manually provided"""
         self._pend(args, self._append_file, self._append_manual)
@@ -113,8 +122,8 @@ class BatchRenamer:
             auto(args)
         if args.find or args.replace or not args.filenames:
             manual(args)
-        if not prev_auto:
-            self._print_file_changes()
+        setattr(args, "automated", prev_auto)
+        self._print_file_changes(args)
 
     def _append_manual(self, og_args):
         """Append a value to filenames that match given pattern"""
@@ -171,8 +180,7 @@ class BatchRenamer:
                     setattr(args, "find", find)
                     setattr(args, "replace", repl)
                     self._pend_manual(args)
-            if not getattr(args, "automated", False):
-                self._print_file_changes()
+        self._print_file_changes(args)
 
     def _pend_manual(self, og_args):
         """Add value to begining or end of filename"""
@@ -180,8 +188,7 @@ class BatchRenamer:
         for file_ in self.files:
             if re.search(args.find, file_.rename.name):
                 file_.replace(args.side, args.replace)
-        if not getattr(args, "automated", False):
-            self._print_file_changes()
+        self._print_file_changes(args)
 
     def change_ext(self, args):
         """Change file extension for files"""
@@ -189,8 +196,7 @@ class BatchRenamer:
         pattern = args.pattern or input("Match Pattern (Leave blank for no pattern): ")
         for file_ in self.files:
             file_.change_ext(repl, pattern)
-        if not getattr(args, "automated", False):
-            self._print_file_changes()
+        self._print_file_changes(args)
 
     def print_help(self, args=None):
         """Display help message"""
@@ -257,8 +263,7 @@ class BatchRenamer:
         repl = args.replace or input("Repl: ")
         for file_ in self.files:
             file_.replace(find, repl)
-        if not getattr(args, "automated", False):
-            self._print_file_changes()
+        self._print_file_changes(args)
 
     def save(self, args):
         """Save name changes"""

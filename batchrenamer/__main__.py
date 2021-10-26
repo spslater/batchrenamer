@@ -1,4 +1,5 @@
 """Run the batchrenamer as one"""
+import sys
 from argparse import ArgumentParser
 
 from batchrenamer import BatchRenamer, __version__
@@ -32,4 +33,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nGoodbye!")
+        sys.exit(1)
